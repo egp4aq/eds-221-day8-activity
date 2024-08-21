@@ -1,0 +1,77 @@
+---
+title: "Day 8 EOD"
+author: "Liz Peterson"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+
+```{r}
+launches <- read_csv(here("data", "space_launches.csv"))
+```
+
+```{r}
+ggplot(data = launches, aes(x = launch_year)) +
+  geom_bar() +
+  labs(title = "Launches per year",
+       x = "Year",
+       y = "Number of Launches") +
+  scale_x_continuous(limits = c(1955,2020),
+                     breaks = seq(from = 1955, to = 2020, by = 5)) +
+  scale_y_continuous(limits = c(0,300),
+                     breaks = seq(from = 0, to = 300, by = 5)) +
+  theme(panel.grid.major = element_line(color = "#40531B"),
+        plot.background = element_rect(fill="#FE5D9F"),
+        text = element_text(size = 12, family = "Comic Sans MS"),
+        axis.text.x = element_text(color = "#4CE0D2"),
+        axis.text.y = element_text(color = "#4CE0D2"),
+        panel.background = element_rect(color = "purple", fill = "#DDFDFE"),
+        panel.grid.minor = element_blank()) +
+  annotate("text", x = 2000, y = 180, label = "CHAT DO U LIKE MY GRAPH", family = "Comic Sans MS")
+
+ggsave(here("figs", "liz_bad_plot.jpg"))
+```
+
+```{r}
+sf_ghg <- read_csv(here("data", "San_Francisco_Communitywide_Greenhouse_Gas_Inventory.csv"))
+
+sector_summary <- sf_ghg %>%
+  group_by(Sector_General) %>%
+  summarize(total_emissions = sum(Emissions_mtCO2e, na.rm=TRUE))
+
+commodity_summary <- sf_ghg %>%
+  group_by(Calendar_Year, Commodity_Type) %>%
+  summarize(total_emissions = sum(Emissions_mtCO2e, na.rm=TRUE))
+
+subset_2005 <- sf_ghg %>%
+  filter(Calendar_Year >= "2005") %>%
+  filter(str_detect(Sector_Detail2, "PG&E")) %>%
+  select(Calendar_Year, Sector_Detail2, Emissions_mtCO2e)
+
+my_subs <- sf_ghg %>%
+  group_by(Sector_Detail1) %>%
+  summarize(total_emissions = sum(Emissions_mtCO2e, na.rm=TRUE))
+```
+
+```{r}
+sf_ghg_plot <- ggplot(data = my_subs, aes(x = total_emissions, y = Sector_Detail1))
+
+sf_ghg_plot +
+  geom_col(aes(fill = Sector_Detail1), show.legend=FALSE) +
+  labs(x = "Total Emissions (mtCO2e)",
+       y = "Sector Specific Details",
+       title = "Total emissions based on sector details") +
+  theme_bw()
+
+ggsave(here("figs", "total_emissions_plot.png"))
+```
+
+
+
+
